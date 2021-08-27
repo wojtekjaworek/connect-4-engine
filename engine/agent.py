@@ -31,9 +31,6 @@ class Human(Agent):
 
 
 
-
-
-
 class RandomAgent(Agent):
     def __init__(self, game_env: Env, player_to_move):
         
@@ -42,5 +39,4 @@ class RandomAgent(Agent):
 
     def select_move(self):
         legal_moves = self.game_env.board.generate_legal_moves()
-        print(legal_moves)
         return int(random.choice(legal_moves))
