@@ -2,8 +2,10 @@ import numpy as np
 from engine.env import Env
 import time
 import random
+from engine.mcts import MCTS, MCTSNode
 
 class Agent():
+
     def __init__(self, game_env: Env, player_to_move):
         self.player_to_move = player_to_move
         self.game_env = game_env
@@ -13,8 +15,8 @@ class Agent():
 
 
 class Human(Agent):
-    def __init__(self, game_env: Env, player_to_move):
 
+    def __init__(self, game_env: Env, player_to_move):
         super().__init__(game_env, player_to_move)
         return None
 
@@ -32,11 +34,23 @@ class Human(Agent):
 
 
 class RandomAgent(Agent):
-    def __init__(self, game_env: Env, player_to_move):
-        
+
+    def __init__(self, game_env: Env, player_to_move):    
         super().__init__(game_env, player_to_move)  
         return None
 
     def select_move(self):
         legal_moves = self.game_env.board.generate_legal_moves()
         return int(random.choice(legal_moves))
+
+
+
+class MCTSAgent(Agent):
+
+    def __init__(self, game_env: Env, player_to_move):
+        super().__init__(game_env, player_to_move)
+
+    def select_move(self):
+        mcts_search = MCTS(game_env=self.game_env, player_to_move=self.player_to_move)
+        move = mcts_search.search()[1]
+        return move

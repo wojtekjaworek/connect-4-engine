@@ -1,4 +1,4 @@
-from engine.agent import Human, RandomAgent, Agent
+from engine.agent import Human, RandomAgent, Agent, MCTSAgent
 import numpy as np
 from engine.board import Board
 from engine.env import Env
@@ -17,13 +17,16 @@ def play(player1: Agent, player2: Agent, game_env: Env, display=False):
 
             player1.update_game_env(game_env=game_env)
             player2.update_game_env(game_env=game_env)
+            
+            if game_env.board.is_terminal_state()[0]:
+                break
 
             move2 = player2.select_move()
             game_env.board.make_move(move2, player_to_move=-1)
 
 
 
-    if display is True:
+    elif display is True:
         while not game_env.board.is_terminal_state()[0]:
             player1.update_game_env(game_env=game_env)
             player2.update_game_env(game_env=game_env)
@@ -35,6 +38,9 @@ def play(player1: Agent, player2: Agent, game_env: Env, display=False):
 
             player1.update_game_env(game_env=game_env)
             player2.update_game_env(game_env=game_env)
+
+            if game_env.board.is_terminal_state()[0]:
+                break
 
             move2 = player2.select_move()
             clear_output(wait=True)
