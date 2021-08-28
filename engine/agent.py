@@ -47,10 +47,14 @@ class RandomAgent(Agent):
 
 class MCTSAgent(Agent):
 
-    def __init__(self, game_env: Env, player_to_move):
+    def __init__(self, game_env: Env, player_to_move, search_depth=1000):
+        """
+        search_depth default value is 1000
+        """
+        self.search_depth = search_depth
         super().__init__(game_env, player_to_move)
 
     def select_move(self):
-        mcts_search = MCTS(game_env=self.game_env, player_to_move=self.player_to_move)
-        move = mcts_search.search()[1]
+        mcts_search = MCTS(game_env=self.game_env, player_to_move=self.player_to_move, search_depth=self.search_depth)
+        move = mcts_search.search()[2]
         return move

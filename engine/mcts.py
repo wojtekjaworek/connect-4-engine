@@ -28,32 +28,49 @@ class MCTSNode():
     
 
 class MCTS():
-    def __init__(self, game_env: Env, player_to_move):
+    def __init__(self, game_env: Env, player_to_move, search_depth):
         self.game_env = game_env
         self.player_to_move = player_to_move
+        self.search_depth = search_depth
         return None
 
     
     def search(self):
         """
-        returns two moves: 
+        returns three moves: 
                             picked_move_UCB - based on highest ucb1 score
                             picked_move_visits - based on highest number of visits
+                            picked_move_score - based on highest score
         """
         self.root = MCTSNode(game_env=self.game_env, parent=None, parent_action=None, player_to_move=self.player_to_move) # player to move is passed in MCTSAgent select_move method, because it will vary due to game specific innitialization
         
 
-        for i in range(200):
+        for i in range(self.search_depth):
             node = self.selection(self.root)
-            score = self.rollout(node)
-            self.backpropagate(node, score)
+            score, moves_until_terminal = self.rollout(node)
+            self.backpropagate(node, score, moves_until_terminal)
 
 
 
         picked_move_UCB = self.UCB1(self.root)
         picked_move_visits = self.most_visited_node(self.root)
-        
-        return picked_move_UCB.parent_action, picked_move_visits.parent_action
+
+        if self.root.player_to_move == 1: picked_move_score = self.highest_score_node(self.root)
+        else: picked_move_score = self.lowest_score_node(self.root)
+
+        i = 0
+        for child in self.root.children:
+            print(f'child {i} === player to move: {child.player_to_move} === parent action: {child.parent_action} === ucb: {child.ucb1} === visits: {child.visits} === score: {child.score}')
+            i += 1
+
+        # j = 0
+        # for child in self.root.children[0].children:
+        #     print(f'child {j} === player to move: {child.player_to_move} === parent action: {child.parent_action} === ucb: {child.ucb1} === visits: {child.visits} === score: {child.score}')
+        #     j += 1
+
+    
+
+        return picked_move_UCB.parent_action, picked_move_visits.parent_action, picked_move_score.parent_action
 
 
     def selection(self, node: MCTSNode):
@@ -80,48 +97,73 @@ class MCTS():
 
 
     def rollout(self, node: MCTSNode):
+        
+
         rollout_env = copy.deepcopy(node.game_env)
         result = 0
+        # print('initial')
+        # print(rollout_env.board.board)
+        moves_until_terminal = 0
 
         while not rollout_env.board.is_terminal_state()[0]:
+            # print('start')
+            moves_until_terminal += 1
             actions = rollout_env.board.generate_legal_moves()
             action = random.choice(actions)
-            rollout_env.board.make_move(action, node.player_to_move)
+            rollout_env.board.make_move(action, rollout_env.board.player_to_move)
             result = rollout_env.board.is_terminal_state()[1]
+            # print('print')
+            # print(rollout_env.board.board)
+            # print('end')
         
-        return result
+
+        return result, moves_until_terminal
 
     
 
 
-    def backpropagate(self, node: MCTSNode, score):
+    def backpropagate(self, node: MCTSNode, score, moves_until_terminal):
         node.visits += 1
-        node.score += score
+        
+        node.score += score * (10 / (np.log(moves_until_terminal + 2))) # score multiplied by enhancing function to favour quicker wins
+        # print('score, node score and mtt: ', score,"  " ,  node.score  ,"    "   ,moves_until_terminal)
         if node.parent is not None:
-            self.backpropagate(node=node.parent, score=score)
+            self.backpropagate(node=node.parent, score=score, moves_until_terminal=moves_until_terminal)
         
         return None
 
 
-    def UCB1(self, node: MCTSNode, c_param=2) ->MCTSNode:
-        best_score = float('-inf')
-        best_moves = []
+    def UCB1(self, node: MCTSNode, c_param=10) ->MCTSNode:
 
-        if node.player_to_move == 1:
+        if self.root.player_to_move == 1: # if MCTSAgent is playing as '1' then we want to maximize, else minimize
             player_coeff = 1
+            best_score =  float('-inf')
         else:
             player_coeff = -1
+            best_score =  float('inf')
+
+
+        best_moves = []
 
         for child in node.children:
-            move_score = player_coeff * child.score/child.visits + c_param * np.sqrt(np.log(node.visits)/child.visits)
+            move_score =  child.score/child.visits + player_coeff * c_param * np.sqrt(np.log(node.visits)/child.visits)
             child.ucb1 = move_score
 
 
-            if move_score > best_score:
-                best_score = move_score
-                best_moves = [child]
-            elif move_score == best_score:
-                best_moves.append(child)
+            if self.root.player_to_move == 1:
+                if move_score > best_score:
+                    best_score = move_score
+                    best_moves = [child]
+                elif move_score == best_score:
+                    best_moves.append(child)
+
+            else:
+                if move_score < best_score:
+                    best_score = move_score
+                    best_moves = [child]
+                elif move_score == best_score:
+                    best_moves.append(child)
+
 
 
 
@@ -142,6 +184,26 @@ class MCTS():
         return most_visited
 
 
+    def highest_score_node(self, node: MCTSNode):
+        best_score = node.children[0]
+        i = 0
+        for child in node.children:
+            if child.score > best_score.score:
+                best_score = child
+            i += 1
+
+        return best_score
+
+
+    def lowest_score_node(self, node: MCTSNode):
+            best_score = node.children[0]
+            i = 0
+            for child in node.children:
+                if child.score < best_score.score:
+                    best_score = child
+                i += 1
+
+            return best_score
 
 
 

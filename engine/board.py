@@ -4,6 +4,7 @@ class Board():
     
     def __init__(self):
         self.board = np.zeros((6,7),dtype=int) # 6 rows, 7 cols
+        self.player_to_move = 1 # 1 always starts the game
         return None
 
     def is_move_legal(self, col) -> bool: # while making move, player picks only desired column!!!
@@ -16,6 +17,7 @@ class Board():
             for row in reversed(range(6)):
                 if self.board[row, col] == 0:
                     self.board[row, col] = player_to_move # player_to_move is either 1(player nr 1, who started game) or -1(second player)
+                    self.player_to_move = -self.player_to_move # now it is opposite player turn
                     break
         else: # if move is not legal
             print('illegal move!')
