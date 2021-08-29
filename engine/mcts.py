@@ -9,6 +9,8 @@ class MCTSNode():
         self.parent = parent
         self.parent_action = parent_action
         self.player_to_move = player_to_move
+        self.total_moves_until_terminal = 0 # accessor to calculate mean nr of moves until terminal
+        self.mean_number_of_moves_until_terminal = 9999
         self.visits = 0
         self.ucb1 = float('-inf')
         self.score = 0
@@ -29,8 +31,16 @@ class MCTSNode():
 
 class MCTS():
     def __init__(self, game_env: Env, player_to_move, search_depth):
-        self.game_env = game_env
         self.player_to_move = player_to_move
+        self.game_env = game_env
+        if self.player_to_move == -1: # switch signs to calculate as it was 1
+            self.game_env.board.player_to_move = -self.game_env.board.player_to_move # switch player to move sign
+            self.game_env.board.board = np.multiply(self.game_env.board.board, -1)
+            self.player_to_move = -self.player_to_move
+        print(f'game setting: game_env player to move: {self.game_env.board.player_to_move} ===== ')
+        print(f'board state: \n {self.game_env.board.board}')
+        print(f'self.player_to_move: {self.player_to_move}')
+
         self.search_depth = search_depth
         return None
 
@@ -54,20 +64,15 @@ class MCTS():
 
         picked_move_UCB = self.UCB1(self.root)
         picked_move_visits = self.most_visited_node(self.root)
-
-        if self.root.player_to_move == 1: picked_move_score = self.highest_score_node(self.root)
-        else: picked_move_score = self.lowest_score_node(self.root)
+        picked_move_score = self.highest_score_node(self.root)
+        
 
         i = 0
         for child in self.root.children:
             print(f'child {i} === player to move: {child.player_to_move} === parent action: {child.parent_action} === ucb: {child.ucb1} === visits: {child.visits} === score: {child.score}')
             i += 1
 
-        # j = 0
-        # for child in self.root.children[0].children:
-        #     print(f'child {j} === player to move: {child.player_to_move} === parent action: {child.parent_action} === ucb: {child.ucb1} === visits: {child.visits} === score: {child.score}')
-        #     j += 1
-
+        
     
 
         return picked_move_UCB.parent_action, picked_move_visits.parent_action, picked_move_score.parent_action
@@ -125,24 +130,20 @@ class MCTS():
     def backpropagate(self, node: MCTSNode, score, moves_until_terminal):
         node.visits += 1
         
-        node.score += score * (10 / (np.log(moves_until_terminal + 2))) # score multiplied by enhancing function to favour quicker wins
-        # print('score, node score and mtt: ', score,"  " ,  node.score  ,"    "   ,moves_until_terminal)
+        node.score += score 
+        node.total_moves_until_terminal += moves_until_terminal
+        node.mean_number_of_moves_until_terminal = node.total_moves_until_terminal / node.visits
         if node.parent is not None:
             self.backpropagate(node=node.parent, score=score, moves_until_terminal=moves_until_terminal)
         
         return None
 
 
-    def UCB1(self, node: MCTSNode, c_param=10) ->MCTSNode:
+    def UCB1(self, node: MCTSNode, c_param=2) ->MCTSNode:
 
-        if self.root.player_to_move == 1: # if MCTSAgent is playing as '1' then we want to maximize, else minimize
-            player_coeff = 1
-            best_score =  float('-inf')
-        else:
-            player_coeff = -1
-            best_score =  float('inf')
-
-
+        
+        player_coeff = 1
+        best_score =  float('-inf')
         best_moves = []
 
         for child in node.children:
@@ -150,21 +151,14 @@ class MCTS():
             child.ucb1 = move_score
 
 
-            if self.root.player_to_move == 1:
-                if move_score > best_score:
-                    best_score = move_score
-                    best_moves = [child]
-                elif move_score == best_score:
-                    best_moves.append(child)
+           
+            if move_score > best_score:
+                best_score = move_score
+                best_moves = [child]
+            elif move_score == best_score:
+                best_moves.append(child)
 
-            else:
-                if move_score < best_score:
-                    best_score = move_score
-                    best_moves = [child]
-                elif move_score == best_score:
-                    best_moves.append(child)
-
-
+           
 
 
         return random.choice(best_moves)

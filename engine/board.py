@@ -2,9 +2,9 @@ import numpy as np
 
 class Board():
     
-    def __init__(self):
+    def __init__(self, player_to_start=1):
         self.board = np.zeros((6,7),dtype=int) # 6 rows, 7 cols
-        self.player_to_move = 1 # 1 always starts the game
+        self.player_to_move = player_to_start # player 1 starts by default, user can change it 
         return None
 
     def is_move_legal(self, col) -> bool: # while making move, player picks only desired column!!!
