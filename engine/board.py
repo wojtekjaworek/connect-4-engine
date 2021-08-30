@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 class Board():
     
@@ -37,6 +38,9 @@ class Board():
             for row in range(6):
                 if self.board[row, col] == 0: return False
         return True
+
+
+
 
 
 

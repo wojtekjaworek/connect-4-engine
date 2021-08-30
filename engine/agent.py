@@ -4,6 +4,7 @@ import time
 import random
 from engine.mcts import MCTS, MCTSNode
 import copy
+from engine.neural_network import NeuralNetwork
 
 class Agent():
 
@@ -56,8 +57,31 @@ class MCTSAgent(Agent):
         super().__init__(game_env, player_to_move)
 
     def select_move(self):
-        search_env = copy.deepcopy(self.game_env)
-        search_player_to_move = copy.deepcopy(self.player_to_move)
-        mcts = MCTS(game_env=search_env, player_to_move=search_player_to_move, search_depth=self.search_depth)
-        move = mcts.search()[2]
+        # move = input('Your move (or type M for MCTS move): ')
+        move = 'M'
+
+
+        if move == 'M':
+            search_env = copy.deepcopy(self.game_env)
+            search_player_to_move = copy.deepcopy(self.player_to_move)
+            mcts = MCTS(game_env=search_env, player_to_move=search_player_to_move, search_depth=self.search_depth)
+            move = mcts.search()[1]
+
+        else:
+            move = int(move)
+
+
+        return move
+
+
+
+class NNAgent(Agent):
+
+    def __init__(self, game_env: Env, neural_network: NeuralNetwork, player_to_move, ):
+        super().__init__(game_env, player_to_move)
+
+    def select_move(self):
+        move = 1
+
+
         return move

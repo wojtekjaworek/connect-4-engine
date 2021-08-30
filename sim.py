@@ -76,7 +76,7 @@ def play(players: List[Agent] , game_env: Env, display=False):
                 # clear_output(wait=True)
                 game_env.board.make_move(move2, player_to_move=players[1].player_to_move)
             print(game_env.board.board)
-            # clear_output(wait=True)
+            clear_output(wait=True)
 
 
 
