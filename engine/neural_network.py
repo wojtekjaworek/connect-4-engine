@@ -51,6 +51,9 @@ class NeuralNetwork():
                 print('input states: ', input_states) # it works
 
 
+            
+
+
         return None
 
 
