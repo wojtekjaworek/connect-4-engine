@@ -4,6 +4,7 @@ from engine.board import Board
 from engine.env import Env
 from IPython.display import display, clear_output
 from typing import List
+import copy
 
 
 
@@ -16,6 +17,8 @@ def play(players: List[Agent] , game_env: Env, display=False):
         while not game_env.board.is_terminal_state()[0]:
             for player in players:
                 player.update_game_env(game_env=game_env)
+            
+            game_env.board_history.append([copy.deepcopy(game_env.board.board), copy.deepcopy(game_env.board.player_to_move), copy.deepcopy(game_env.board.is_terminal_state()[1])])
 
             if game_env.board.player_to_move == player_to_start:
                 move1 = players[0].select_move()
@@ -26,6 +29,8 @@ def play(players: List[Agent] , game_env: Env, display=False):
 
             for player in players:
                 player.update_game_env(game_env=game_env)
+
+            game_env.board_history.append([copy.deepcopy(game_env.board.board), copy.deepcopy(game_env.board.player_to_move)])
             
             if game_env.board.is_terminal_state()[0]:
                 break
@@ -47,6 +52,10 @@ def play(players: List[Agent] , game_env: Env, display=False):
             for player in players:
                 player.update_game_env(game_env=game_env)
 
+
+            game_env.board_history.append([copy.deepcopy(game_env.board.board), copy.deepcopy(game_env.board.player_to_move)])
+
+
             if game_env.board.player_to_move == player_to_start:
                 print('now it is turn for player: ', players[0].player_to_move)
                 move1 = players[0].select_move()
@@ -61,6 +70,9 @@ def play(players: List[Agent] , game_env: Env, display=False):
 
             for player in players:
                 player.update_game_env(game_env=game_env)
+
+            game_env.board_history.append([copy.deepcopy(game_env.board.board), copy.deepcopy(game_env.board.player_to_move)])
+
             
             if game_env.board.is_terminal_state()[0]:
                 break
@@ -80,4 +92,4 @@ def play(players: List[Agent] , game_env: Env, display=False):
 
 
 
-    return game_env.board.is_terminal_state()[1]
+    return game_env.board.is_terminal_state()[1], game_env.board_history

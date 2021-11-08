@@ -11,4 +11,7 @@ class Env():
     def reset(self):
         del self.board
         self.board = Board()
+        
+        del self.board_history
+        self.board_history = []
 
